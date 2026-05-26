@@ -1,12 +1,18 @@
+"use client";
+
 import { ActionButton } from "./action-button";
 import { BellIcon, PlusIcon, SettingsIcon, SparkIcon } from "./icons";
+import { useAuth } from "./auth-provider";
 
 export function Header() {
+  const { user, signOut } = useAuth();
+  const displayName = user?.user_metadata?.name ?? user?.email ?? "Usuário";
+
   return (
     <header className="panel rounded-[30px] px-6 py-5">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <p className="text-sm text-white/45">Boa noite, João</p>
+          <p className="text-sm text-white/45">Boa noite, {displayName}</p>
           <h2 className="mt-1 text-3xl font-semibold tracking-tight text-gradient lg:text-[2.1rem]">Seu painel financeiro em tempo real</h2>
         </div>
 
@@ -26,6 +32,12 @@ export function Header() {
             <PlusIcon />
             Nova transação
           </ActionButton>
+          <button
+            onClick={signOut}
+            className="flex h-11 items-center rounded-2xl border border-neonRed/25 bg-neonRed/10 px-4 text-sm font-semibold text-white hover:border-neonRed/45 hover:bg-neonRed/15"
+          >
+            Sair
+          </button>
         </div>
       </div>
     </header>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { menuItems } from "@/data/mock-finance";
+import { useAuth } from "./auth-provider";
 import {
   ArrowDownIcon,
   GridIcon,
@@ -23,6 +24,8 @@ const iconMap = {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user, signOut } = useAuth();
+  const displayName = user?.user_metadata?.name ?? user?.email ?? "Usuário";
 
   return (
     <aside className="panel flex min-h-[calc(100vh-40px)] flex-col rounded-[32px] p-5 xl:sticky xl:top-5 xl:max-h-[calc(100vh-40px)]">
@@ -59,9 +62,19 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="rounded-[24px] border border-neonPurple/20 bg-neonPurple/10 p-4 shadow-purple">
+      <div className="space-y-3 rounded-[24px] border border-neonPurple/20 bg-neonPurple/10 p-4 shadow-purple">
         <p className="text-xs uppercase tracking-[0.3em] text-neonPurple/80">Meta premium</p>
         <p className="mt-2 text-sm text-white/70">Você atingiu 78% da sua meta de reserva para emergências.</p>
+        <div className="border-t border-white/10 pt-3">
+          <p className="truncate text-xs text-white/40">Conectado como</p>
+          <p className="mt-1 truncate text-sm font-medium text-white/80">{displayName}</p>
+          <button
+            onClick={signOut}
+            className="mt-3 w-full rounded-2xl border border-neonRed/25 bg-neonRed/10 px-4 py-2.5 text-sm font-semibold text-white hover:border-neonRed/45 hover:bg-neonRed/15"
+          >
+            Sair
+          </button>
+        </div>
       </div>
     </aside>
   );
