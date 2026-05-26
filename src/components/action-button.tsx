@@ -5,6 +5,7 @@ type ActionButtonProps = {
   children: ReactNode;
   href?: string;
   variant?: "primary" | "secondary";
+  onClick?: () => void;
 };
 
 const variants = {
@@ -17,7 +18,7 @@ const variants = {
 const baseClassName =
   "inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-semibold transition";
 
-export function ActionButton({ children, href, variant = "primary" }: ActionButtonProps) {
+export function ActionButton({ children, href, variant = "primary", onClick }: ActionButtonProps) {
   const className = `${baseClassName} ${variants[variant]}`;
 
   if (href) {
@@ -28,5 +29,9 @@ export function ActionButton({ children, href, variant = "primary" }: ActionButt
     );
   }
 
-  return <button className={className}>{children}</button>;
+  return (
+    <button className={className} onClick={onClick}>
+      {children}
+    </button>
+  );
 }
