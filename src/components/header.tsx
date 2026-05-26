@@ -4,7 +4,11 @@ import { ActionButton } from "./action-button";
 import { BellIcon, PlusIcon, SettingsIcon, SparkIcon } from "./icons";
 import { useAuth } from "./auth-provider";
 
-export function Header() {
+type HeaderProps = {
+  onAddTransaction?: () => void;
+};
+
+export function Header({ onAddTransaction }: HeaderProps) {
   const { user, signOut } = useAuth();
   const displayName = user?.user_metadata?.name ?? user?.email ?? "Usuário";
 
@@ -28,7 +32,7 @@ export function Header() {
             <SettingsIcon className="text-white/65" />
             Configurações
           </ActionButton>
-          <ActionButton>
+          <ActionButton onClick={onAddTransaction}>
             <PlusIcon />
             Nova transação
           </ActionButton>

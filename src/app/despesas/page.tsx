@@ -1,26 +1,51 @@
+"use client";
+
+import { useState } from "react";
 import { ActionButton } from "@/components/action-button";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { DataTable } from "@/components/data-table";
 import { EmptyState } from "@/components/empty-state";
+import { FeedbackMessage } from "@/components/feedback-message";
 import { PageHeader } from "@/components/page-header";
 import { PlusIcon } from "@/components/icons";
 import { SummaryCard } from "@/components/summary-card";
-import { expenseColumns, expenseRows, expenseSummary } from "@/data/mock-finance";
+import { TransactionModal } from "@/components/transaction-modal";
+import { TransactionsTable } from "@/components/transactions-table";
+import { useTransactions } from "@/hooks/use-transactions";
+import { currentMonthTransactions, formatCurrency } from "@/utils/finance";
 
 export default function DespesasPage() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const { transactions, loading, saving, deletingId, error, success, addTransaction, removeTransaction, clearFeedback } = useTransactions({ type: "despesa" });
+  const currentMonth = currentMonthTransactions(transactions);
+  const total = currentMonth.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const topCategory = currentMonth.reduce<Record<string, number>>((categories, transaction) => {
+    categories[transaction.category] = (categories[transaction.category] ?? 0) + transaction.amount;
+    return categories;
+  }, {});
+  const [category = "Sem dados", categoryTotal = 0] = Object.entries(topCategory).sort(([, first], [, second]) => second - first)[0] ?? [];
+
+  const expenseSummary = [
+    { title: "Despesas do mês", value: formatCurrency(total), change: `${currentMonth.length} saídas no período`, accent: "red" as const },
+    { title: "Gasto médio", value: formatCurrency(currentMonth.length ? total / currentMonth.length : 0), change: "Média por lançamento", accent: "blue" as const },
+    { title: "Top categoria", value: category, change: formatCurrency(categoryTotal), accent: "purple" as const },
+  ];
+
   return (
     <DashboardShell>
       <PageHeader
         eyebrow="Controle de saídas"
         title="Despesas"
-        description="Monitore gastos fixos e variáveis com o mesmo visual premium do dashboard, priorizando clareza em notebook e desktop."
+        description="Monitore gastos fixos e variáveis com dados reais do Supabase, mantendo o mesmo visual premium do dashboard."
         action={
-          <ActionButton>
+          <ActionButton onClick={() => setModalOpen(true)}>
             <PlusIcon />
             Nova despesa
           </ActionButton>
         }
       />
+
+      {error ? <FeedbackMessage type="error" message={error} /> : null}
+      {success ? <FeedbackMessage type="success" message={success} /> : null}
 
       <section className="grid gap-4 lg:grid-cols-3">
         {expenseSummary.map((card) => (
@@ -28,17 +53,31 @@ export default function DespesasPage() {
         ))}
       </section>
 
-      <DataTable
+      <TransactionsTable
         title="Saídas monitoradas"
-        subtitle="Despesas com destaque para vencimento, status e impacto no orçamento."
-        columns={expenseColumns}
-        rows={expenseRows}
+        subtitle="Despesas carregadas diretamente do banco com exclusão protegida por RLS."
+        transactions={transactions}
+        loading={loading}
+        deletingId={deletingId}
+        onDelete={removeTransaction}
       />
 
       <EmptyState
-        badge="Tudo em ordem"
-        title="Nenhum gasto fora da política pessoal"
-        description="Despesas sinalizadas por limite estourado, atraso ou categoria não classificada serão exibidas aqui para você agir rapidamente."
+        badge="Dados reais"
+        title="As despesas agora vêm do banco"
+        description="Use o botão de nova despesa para cadastrar saídas e atualizar esta página automaticamente."
+      />
+
+      <TransactionModal
+        open={modalOpen}
+        defaultType="despesa"
+        saving={saving}
+        error={error}
+        onClose={() => {
+          setModalOpen(false);
+          clearFeedback();
+        }}
+        onSubmit={addTransaction}
       />
     </DashboardShell>
   );
