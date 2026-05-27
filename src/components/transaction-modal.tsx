@@ -3,11 +3,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "./auth-provider";
 import { FeedbackMessage } from "./feedback-message";
-import type { CreateTransactionInput, TransactionType } from "@/types/transaction";
+import type { CreateTransactionInput, Transaction, TransactionType } from "@/types/transaction";
 
 type TransactionModalProps = {
   open: boolean;
   defaultType?: TransactionType;
+  transaction?: Transaction | null;
   saving: boolean;
   error?: string | null;
   onClose: () => void;
@@ -16,7 +17,7 @@ type TransactionModalProps = {
 
 const today = new Date().toISOString().slice(0, 10);
 
-export function TransactionModal({ open, defaultType = "despesa", saving, error, onClose, onSubmit }: TransactionModalProps) {
+export function TransactionModal({ open, defaultType = "despesa", transaction, saving, error, onClose, onSubmit }: TransactionModalProps) {
   const { user } = useAuth();
   const [type, setType] = useState<TransactionType>(defaultType);
   const [title, setTitle] = useState("");
@@ -26,10 +27,13 @@ export function TransactionModal({ open, defaultType = "despesa", saving, error,
 
   useEffect(() => {
     if (open) {
-      setType(defaultType);
-      setTransactionDate(today);
+      setType(transaction?.type ?? defaultType);
+      setTitle(transaction?.title ?? "");
+      setAmount(transaction ? String(transaction.amount) : "");
+      setCategory(transaction?.category ?? "");
+      setTransactionDate(transaction?.transaction_date ?? today);
     }
-  }, [defaultType, open]);
+  }, [defaultType, open, transaction]);
 
   if (!open) return null;
 
@@ -60,9 +64,9 @@ export function TransactionModal({ open, defaultType = "despesa", saving, error,
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4 py-6 backdrop-blur-sm">
       <div className="panel w-full max-w-2xl overflow-hidden rounded-[32px]">
         <div className="border-b border-white/10 px-6 py-5">
-          <p className="text-xs uppercase tracking-[0.35em] text-electric/75">Nova transação</p>
-          <h2 className="mt-2 text-2xl font-semibold text-gradient">Adicionar movimento financeiro</h2>
-          <p className="mt-2 text-sm text-white/55">Registre receitas e despesas diretamente no Supabase.</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-electric/75">{transaction ? "Editar transação" : "Nova transação"}</p>
+          <h2 className="mt-2 text-2xl font-semibold text-gradient">{transaction ? "Atualizar movimento financeiro" : "Adicionar movimento financeiro"}</h2>
+          <p className="mt-2 text-sm text-white/55">{transaction ? "Altere os dados da transação e salve no Supabase." : "Registre receitas e despesas diretamente no Supabase."}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
@@ -150,7 +154,7 @@ export function TransactionModal({ open, defaultType = "despesa", saving, error,
               disabled={saving}
               className="h-11 rounded-2xl bg-gradient-to-r from-neonRed via-neonPurple to-electric px-5 text-sm font-semibold text-white shadow-red disabled:cursor-not-allowed disabled:opacity-65"
             >
-              {saving ? "Salvando..." : "Salvar transação"}
+              {saving ? "Salvando..." : transaction ? "Salvar alterações" : "Salvar transação"}
             </button>
           </div>
         </form>

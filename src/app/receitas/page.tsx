@@ -11,11 +11,13 @@ import { SummaryCard } from "@/components/summary-card";
 import { TransactionModal } from "@/components/transaction-modal";
 import { TransactionsTable } from "@/components/transactions-table";
 import { useTransactions } from "@/hooks/use-transactions";
+import type { Transaction } from "@/types/transaction";
 import { currentMonthTransactions, formatCurrency } from "@/utils/finance";
 
 export default function ReceitasPage() {
   const [modalOpen, setModalOpen] = useState(false);
-  const { transactions, loading, saving, deletingId, error, success, addTransaction, removeTransaction, clearFeedback } = useTransactions({ type: "receita" });
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const { transactions, loading, saving, deletingId, error, success, addTransaction, editTransaction, removeTransaction, clearFeedback } = useTransactions({ type: "receita" });
   const currentMonth = currentMonthTransactions(transactions);
   const total = currentMonth.reduce((sum, transaction) => sum + transaction.amount, 0);
   const top = transactions[0];
@@ -33,7 +35,12 @@ export default function ReceitasPage() {
         title="Receitas"
         description="Visualize todas as entradas reais registradas no Supabase e acompanhe fontes recorrentes sem perder o contexto do dashboard principal."
         action={
-          <ActionButton onClick={() => setModalOpen(true)}>
+          <ActionButton
+            onClick={() => {
+              setEditingTransaction(null);
+              setModalOpen(true);
+            }}
+          >
             <PlusIcon />
             Nova receita
           </ActionButton>
@@ -55,6 +62,10 @@ export default function ReceitasPage() {
         transactions={transactions}
         loading={loading}
         deletingId={deletingId}
+        onEdit={(transaction) => {
+          setEditingTransaction(transaction);
+          setModalOpen(true);
+        }}
         onDelete={removeTransaction}
       />
 
@@ -67,13 +78,15 @@ export default function ReceitasPage() {
       <TransactionModal
         open={modalOpen}
         defaultType="receita"
+        transaction={editingTransaction}
         saving={saving}
         error={error}
         onClose={() => {
           setModalOpen(false);
+          setEditingTransaction(null);
           clearFeedback();
         }}
-        onSubmit={addTransaction}
+        onSubmit={(input) => (editingTransaction ? editTransaction(editingTransaction.id, input) : addTransaction(input))}
       />
     </DashboardShell>
   );
