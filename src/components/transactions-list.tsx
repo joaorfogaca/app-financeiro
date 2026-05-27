@@ -14,7 +14,6 @@ export function TransactionsList({ transactions, loading, deletingId, onDelete }
     <SectionCard
       title="Últimas transações"
       subtitle="Movimentações recentes para acompanhamento rápido."
-      action={<span className="text-sm text-white/45">Dados Supabase</span>}
       className="h-full"
     >
       {loading ? (
