@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import type { CreateTransactionInput, Transaction, TransactionType } from "@/types/transaction";
+import type { CreateTransactionInput, Transaction, TransactionType, UpdateTransactionInput } from "@/types/transaction";
 
 function ensureSupabase() {
   if (!supabase) {
@@ -27,6 +27,15 @@ export async function listTransactions(type?: TransactionType) {
 export async function createTransaction(input: CreateTransactionInput) {
   const client = ensureSupabase();
   const { data, error } = await client.from("transactions").insert(input).select("*").single();
+
+  if (error) throw new Error(error.message);
+
+  return data as Transaction;
+}
+
+export async function updateTransaction(id: string, input: UpdateTransactionInput) {
+  const client = ensureSupabase();
+  const { data, error } = await client.from("transactions").update(input).eq("id", id).select("*").single();
 
   if (error) throw new Error(error.message);
 

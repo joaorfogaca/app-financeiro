@@ -10,11 +10,13 @@ import { SummaryCard } from "@/components/summary-card";
 import { TransactionModal } from "@/components/transaction-modal";
 import { TransactionsList } from "@/components/transactions-list";
 import { useTransactions } from "@/hooks/use-transactions";
+import type { Transaction } from "@/types/transaction";
 import { currentMonthTransactions, formatCurrency } from "@/utils/finance";
 
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
-  const { transactions, totals, loading, saving, deletingId, error, success, addTransaction, removeTransaction, clearFeedback } = useTransactions();
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const { transactions, totals, loading, saving, deletingId, error, success, addTransaction, editTransaction, removeTransaction, clearFeedback } = useTransactions();
   const currentMonth = currentMonthTransactions(transactions);
   const monthIncome = currentMonth.filter((transaction) => transaction.type === "receita").reduce((total, transaction) => total + transaction.amount, 0);
   const monthExpense = currentMonth.filter((transaction) => transaction.type === "despesa").reduce((total, transaction) => total + transaction.amount, 0);
@@ -29,7 +31,12 @@ export default function Home() {
 
   return (
     <DashboardShell>
-      <Header onAddTransaction={() => setModalOpen(true)} />
+      <Header
+        onAddTransaction={() => {
+          setEditingTransaction(null);
+          setModalOpen(true);
+        }}
+      />
 
       {error ? <FeedbackMessage type="error" message={error} /> : null}
       {success ? <FeedbackMessage type="success" message={success} /> : null}
@@ -45,17 +52,28 @@ export default function Home() {
         <GoalProgressCard />
       </section>
 
-      <TransactionsList transactions={transactions} loading={loading} deletingId={deletingId} onDelete={removeTransaction} />
+      <TransactionsList
+        transactions={transactions}
+        loading={loading}
+        deletingId={deletingId}
+        onEdit={(transaction) => {
+          setEditingTransaction(transaction);
+          setModalOpen(true);
+        }}
+        onDelete={removeTransaction}
+      />
 
       <TransactionModal
         open={modalOpen}
+        transaction={editingTransaction}
         saving={saving}
         error={error}
         onClose={() => {
           setModalOpen(false);
+          setEditingTransaction(null);
           clearFeedback();
         }}
-        onSubmit={addTransaction}
+        onSubmit={(input) => (editingTransaction ? editTransaction(editingTransaction.id, input) : addTransaction(input))}
       />
     </DashboardShell>
   );

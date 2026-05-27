@@ -10,10 +10,11 @@ type TransactionsTableProps = {
   transactions: Transaction[];
   loading: boolean;
   deletingId?: string | null;
+  onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
 };
 
-export function TransactionsTable({ title, subtitle, transactions, loading, deletingId, onDelete }: TransactionsTableProps) {
+export function TransactionsTable({ title, subtitle, transactions, loading, deletingId, onEdit, onDelete }: TransactionsTableProps) {
   return (
     <SectionCard title={title} subtitle={subtitle} className="overflow-hidden">
       {loading ? (
@@ -53,13 +54,21 @@ export function TransactionsTable({ title, subtitle, transactions, loading, dele
                       {positive ? "+" : "-"} {formatCurrency(transaction.amount)}
                     </td>
                     <td className="border-b border-white/6 px-4 py-4 text-right">
-                      <button
-                        onClick={() => onDelete(transaction.id)}
-                        disabled={deletingId === transaction.id}
-                        className="rounded-xl border border-neonRed/20 bg-neonRed/10 px-3 py-2 text-xs font-semibold text-neonRed hover:border-neonRed/40 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {deletingId === transaction.id ? "Excluindo..." : "Excluir"}
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => onEdit(transaction)}
+                          className="rounded-xl border border-electric/20 bg-electric/10 px-3 py-2 text-xs font-semibold text-electric hover:border-electric/40"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => onDelete(transaction.id)}
+                          disabled={deletingId === transaction.id}
+                          className="rounded-xl border border-neonRed/20 bg-neonRed/10 px-3 py-2 text-xs font-semibold text-neonRed hover:border-neonRed/40 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {deletingId === transaction.id ? "Excluindo..." : "Excluir"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

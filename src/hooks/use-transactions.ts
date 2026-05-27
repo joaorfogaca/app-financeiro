@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createTransaction, deleteTransaction, listTransactions } from "@/services/transactions";
-import type { CreateTransactionInput, Transaction, TransactionType } from "@/types/transaction";
+import { createTransaction, deleteTransaction, listTransactions, updateTransaction } from "@/services/transactions";
+import type { CreateTransactionInput, Transaction, TransactionType, UpdateTransactionInput } from "@/types/transaction";
 
 type UseTransactionsOptions = {
   type?: TransactionType;
@@ -71,6 +71,27 @@ export function useTransactions(options: UseTransactionsOptions = {}) {
     }
   }, []);
 
+  const editTransaction = useCallback(
+    async (id: string, input: UpdateTransactionInput) => {
+      setSaving(true);
+      setError(null);
+      setSuccess(null);
+
+      try {
+        await updateTransaction(id, input);
+        setSuccess("Transação atualizada com sucesso.");
+        await loadTransactions();
+        return true;
+      } catch (currentError) {
+        setError(currentError instanceof Error ? currentError.message : "Não foi possível atualizar a transação.");
+        return false;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [loadTransactions],
+  );
+
   const totals = useMemo(() => {
     const income = transactions.filter((transaction) => transaction.type === "receita").reduce((total, transaction) => total + transaction.amount, 0);
     const expense = transactions.filter((transaction) => transaction.type === "despesa").reduce((total, transaction) => total + transaction.amount, 0);
@@ -93,6 +114,7 @@ export function useTransactions(options: UseTransactionsOptions = {}) {
     success,
     refresh: loadTransactions,
     addTransaction,
+    editTransaction,
     removeTransaction,
     clearFeedback: () => {
       setError(null);

@@ -19,3 +19,5 @@ export type CreateTransactionInput = {
   category: string;
   transaction_date: string;
 };
+
+export type UpdateTransactionInput = CreateTransactionInput;
